@@ -35,7 +35,7 @@ pipeline {
             }
         }
 
-        stage('test') {
+        stage('test' {
             steps {
                 dir('Amazon') {
                     sh 'mvn test'
