@@ -53,20 +53,47 @@ pipeline {
     }
 
     post {
-        always {
-            echo 'Post: ALWAYS executed.'
-        }
+
         success {
-            echo 'Post: Build SUCCESS.'
+            mail to: 'neerajmishra91011@gmail.com',
+                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """Hello Neeraj,
+
+Your Jenkins pipeline build has SUCCESSFULLY completed.
+
+Job Name : ${env.JOB_NAME}
+Build No : ${env.BUILD_NUMBER}
+Status   : SUCCESS
+
+Console Output:
+${env.BUILD_URL}console
+
+Regards,
+Jenkins CI Server
+"""
         }
+
         failure {
-            echo 'Post: Build FAILURE.'
+            mail to: 'neerajmishra91011@gmail.com',
+                 subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """Hello Neeraj,
+
+Your Jenkins pipeline build has FAILED.
+
+Job Name : ${env.JOB_NAME}
+Build No : ${env.BUILD_NUMBER}
+Status   : FAILURE
+
+Console Output:
+${env.BUILD_URL}console
+
+Regards,
+Jenkins CI Server
+"""
         }
-        unstable {
-            echo 'Post: Build UNSTABLE.'
-        }
-        aborted {
-            echo 'Post: Build ABORTED.'
+
+        always {
+            echo 'Post action completed.'
         }
     }
 }
