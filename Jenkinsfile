@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         git_branch = "${env.BRANCH_NAME}"
+        slackWebhookUrl = "YOUR_WEBHOOK_URL"
     }
 
     stages {
@@ -31,14 +32,49 @@ pipeline {
                 }
             }
         }
+
+        stage('Send Slack Notification') {
+            steps {
+                script {
+                    def status = currentBuild.result ?: 'SUCCESS'
+                    def message = """
+                    {
+                        "text": "Pipeline Build Status: ${status}",
+                        "attachments": [
+                            {
+                                "text": "Branch: ${env.BRANCH_NAME} | Node: ${env.NODE_NAME}",
+                                "color": "${status == 'SUCCESS' ? 'good' : 'danger'}"
+                            }
+                        ]
+                    }
+                    """
+                    sh """
+                    curl -X POST -H 'Content-type: application/json' --data '${message}' ${slackWebhookUrl}
+                    """
+                }
+            }
+        }
     }
 
     post {
-        success {
-            echo "Build SUCCESS for branch: ${env.BRANCH_NAME}"
-        }
-        failure {
-            echo "Build FAILED for branch: ${env.BRANCH_NAME}"
+        always {
+            script {
+                def status = currentBuild.result ?: 'SUCCESS'
+                def message = """
+                {
+                    "text": "Final Build Result: ${status}",
+                    "attachments": [
+                        {
+                            "text": "Branch: ${env.BRANCH_NAME} | Node: ${env.NODE_NAME}",
+                            "color": "${status == 'SUCCESS' ? 'good' : 'danger'}"
+                        }
+                    ]
+                }
+                """
+                sh """
+                curl -X POST -H 'Content-type: application/json' --data '${message}' ${slackWebhookUrl}
+                """
+            }
         }
     }
 }
