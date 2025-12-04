@@ -6,75 +6,26 @@ pipeline {
         jdk   'JDK21'
     }
 
-    environment {
-        git_branch = "${env.BRANCH_NAME}"
-        slackWebhookUrl = credentials('slack_webhook')
-    }
-
     stages {
-        stage('Branch Info') {
+        stage('Checkout') {
             steps {
-                echo "Building branch: ${env.BRANCH_NAME}"
-                echo "Running build on: ${env.NODE_NAME}"
+                checkout scm
             }
         }
 
-        stage('Checkout Repo') {
+        stage('Build') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/Neeraj999999/Amazon-ABC.git'
-            }
-        }
-
-        stage('Build Amazon Project') {
-            steps {
-                dir('Amazon') {
-                    sh 'mvn clean install'
-                }
-            }
-        }
-
-        stage('Send Slack Notification') {
-            steps {
-                script {
-                    def status = currentBuild.result ?: 'SUCCESS'
-                    def message = """
-                    {
-                        "text": "Pipeline Build Status: ${status}",
-                        "attachments": [
-                            {
-                                "text": "Branch: ${env.BRANCH_NAME} | Node: ${env.NODE_NAME}",
-                                "color": "${status == 'SUCCESS' ? 'good' : 'danger'}"
-                            }
-                        ]
-                    }
-                    """
-                    sh """
-                    curl -X POST -H 'Content-type: application/json' --data '${message}' ${slackWebhookUrl}
-                    """
-                }
+                sh "mvn clean install"
             }
         }
     }
 
     post {
-        always {
-            script {
-                def status = currentBuild.result ?: 'SUCCESS'
-                def message = """
-                {
-                    "text": "Final Build Result: ${status}",
-                    "attachments": [
-                        {
-                            "text": "Branch: ${env.BRANCH_NAME} | Node: ${env.NODE_NAME}",
-                            "color": "${status == 'SUCCESS' ? 'good' : 'danger'}"
-                        }
-                    ]
-                }
-                """
-                sh """
-                curl -X POST -H 'Content-type: application/json' --data '${message}' ${slackWebhookUrl}
-                """
-            }
+        success {
+            echo "Build successful for ${env.JOB_NAME}"
+        }
+        failure {
+            echo "Build failed for ${env.JOB_NAME}"
         }
     }
 }
