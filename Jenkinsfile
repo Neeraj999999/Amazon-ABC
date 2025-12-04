@@ -28,7 +28,7 @@ pipeline {
         stage('Build Amazon Project') {
             steps {
                 dir('Amazon') {
-                    sh 'mvn clean insta'
+                    sh 'mvn clean install'
                 }
             }
         }
