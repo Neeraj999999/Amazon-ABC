@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         git_branch = "${env.BRANCH_NAME}"
-        slackWebhookUrl = "YOUR_WEBHOOK_URL"
+        slackWebhookUrl = "https://hooks.slack.com/services/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"
     }
 
     stages {
