@@ -17,9 +17,31 @@ pipeline {
             }
         }
 
+        stage('Locate pom.xml') {
+            steps {
+                script {
+                    def poms = sh(
+                        script: "find . -name pom.xml",
+                        returnStdout: true
+                    ).trim().split("\n")
+
+                    if (poms.size() == 0) {
+                        error "No pom.xml found in repository"
+                    }
+
+                    if (poms.size() > 1) {
+                        error "Multiple pom.xml files found: ${poms}"
+                    }
+
+                    env.POM_PATH = poms[0]
+                    echo "Using POM: ${env.POM_PATH}"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn -f ${POM_PATH} clean install'
             }
         }
     }
