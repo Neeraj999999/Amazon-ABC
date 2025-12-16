@@ -8,9 +8,18 @@ pipeline {
             }
         }
 
+        stage('Verify Environment') {
+            steps {
+                sh '''
+                  java --version
+                  mvn --version
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
-                sh "mvn clean install"
+                sh 'mvn clean install'
             }
         }
     }
