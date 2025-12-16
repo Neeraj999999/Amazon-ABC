@@ -17,41 +17,27 @@ pipeline {
             }
         }
 
-        stage('Locate pom.xml') {
+        stage('Build All Maven Projects') {
             steps {
-                script {
-                    def poms = sh(
-                        script: "find . -name pom.xml",
-                        returnStdout: true
-                    ).trim().split("\n")
-
-                    if (poms.size() == 0) {
-                        error "No pom.xml found in repository"
-                    }
-
-                    if (poms.size() > 1) {
-                        error "Multiple pom.xml files found: ${poms}"
-                    }
-
-                    env.POM_PATH = poms[0]
-                    echo "Using POM: ${env.POM_PATH}"
-                }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'mvn -f ${POM_PATH} clean install'
+                sh '''
+                  set -e
+                  for pom in $(find . -name pom.xml); do
+                    echo "===================================="
+                    echo "Building project using $pom"
+                    echo "===================================="
+                    mvn -f "$pom" clean install
+                  done
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Build successful for ${env.JOB_NAME}"
+            echo "All Maven builds completed successfully"
         }
         failure {
-            echo "Build failed for ${env.JOB_NAME}"
+            echo "One or more Maven builds failed"
         }
     }
 }
